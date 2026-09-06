@@ -2,6 +2,16 @@
 
 A Flutter music app - Your K-Pop universe. Local-only music player with heart icon, responsive UI, and background playback.
 
+## Download (Offline APK)
+
+**Direct download (anyone, no login):**
+* **Debug APK (94MB, works on all Android 6+):** [Download K-VIBES v1.0.0](https://github.com/gracesellemanaging-lab/K-Vibes/raw/main/build/app/outputs/flutter-apk/app-debug.apk)
+* **GitHub Release (recommended):** https://github.com/gracesellemanaging-lab/K-Vibes/releases/tag/v1.0.0
+
+> Install: Download → Tap → Allow "Install unknown apps" → Open → Works 100% offline (plays your phone's music, no internet needed).
+
+## Build locally
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
