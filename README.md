@@ -1,6 +1,6 @@
-# music_app
+# K-Vibes
 
-A new Flutter project.
+A Flutter music app - Your K-Pop universe. Local-only music player with heart icon, responsive UI, and background playback.
 
 ## Getting Started
 
