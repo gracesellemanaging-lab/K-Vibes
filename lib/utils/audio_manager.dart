@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -82,6 +83,8 @@ class AudioManager extends ChangeNotifier {
         }
       }
 
+      // Timeouts convert silent hangs (dead service / stuck engine) into
+      // visible, actionable errors instead of a frozen 00:00 UI.
       if (backgroundMode) {
         // Service path: notification + lockscreen + screen-off playback.
         // Only use artUri for real URIs (file/content/http). Asset paths like
@@ -102,21 +105,29 @@ class AudioManager extends ChangeNotifier {
           duration: _parseDuration(song.duration),
           artUri: artUri,
         );
-        await player.setAudioSource(
-          song.isLocal
-              ? AudioSource.file(song.audioFile, tag: mediaItem)
-              : AudioSource.asset(song.audioFile, tag: mediaItem),
-        );
+        await player
+            .setAudioSource(
+              song.isLocal
+                  ? AudioSource.file(song.audioFile, tag: mediaItem)
+                  : AudioSource.asset(song.audioFile, tag: mediaItem),
+            )
+            .timeout(const Duration(seconds: 12));
       } else {
         // Plain local playback: no background service involved.
-        await player.setAudioSource(
-          song.isLocal
-              ? AudioSource.file(song.audioFile)
-              : AudioSource.asset(song.audioFile),
-        );
+        await player
+            .setAudioSource(
+              song.isLocal
+                  ? AudioSource.file(song.audioFile)
+                  : AudioSource.asset(song.audioFile),
+            )
+            .timeout(const Duration(seconds: 12));
       }
 
-      await player.play();
+      await player.play().timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      debugPrint('AudioManager TIMEOUT | file: ${song.audioFile}');
+      showAppSnack(
+          'Dili mo-load "${song.title}" — service dili motubag. Sulayi: Background OFF + restart');
     } catch (e) {
       debugPrint('AudioManager play error: $e | file: ${song.audioFile}');
       showAppSnack('Dili ma-play "${song.title}" — sulayi pag-usab');

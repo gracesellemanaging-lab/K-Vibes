@@ -14,19 +14,36 @@ import 'utils/playlist_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load background-mode preference FIRST.
+  // OFF mode must skip the background plugin ENTIRELY: init globally
+  // replaces the audio platform, so even "plain" playback would still
+  // route through a (possibly dead) AudioService. Skipping init gives
+  // a true plain just_audio player.
+  bool bgMode = true;
+  try {
+    await AudioManager.instance.loadBackgroundMode();
+    bgMode = AudioManager.instance.backgroundMode;
+  } catch (e) {
+    debugPrint('Background mode load failed: $e');
+  }
+
   // Media notification for background playback.
   // Wrapped in try/catch so a background-service failure NEVER blocks app open.
-  try {
-    await JustAudioBackground.init(
-      androidNotificationChannelId: 'com.example.music_app.audio',
-      androidNotificationChannelName: 'K-VIBES Playback',
-      androidNotificationOngoing: true,
-      androidShowNotificationBadge: true,
-      androidNotificationIcon: 'drawable/ic_stat_music_note',
-      androidStopForegroundOnPause: false,
-    );
-  } catch (e) {
-    debugPrint('JustAudioBackground.init failed, continuing without it: $e');
+  if (bgMode) {
+    try {
+      await JustAudioBackground.init(
+        androidNotificationChannelId: 'com.example.music_app.audio',
+        androidNotificationChannelName: 'K-VIBES Playback',
+        androidNotificationOngoing: true,
+        androidShowNotificationBadge: true,
+        androidNotificationIcon: 'drawable/ic_stat_music_note',
+        androidStopForegroundOnPause: false,
+      );
+    } catch (e) {
+      debugPrint('JustAudioBackground.init failed, continuing without it: $e');
+    }
+  } else {
+    debugPrint('Background mode OFF: plain player, no AudioService');
   }
 
   // Request notification permission on Android 13+ (non-blocking)
@@ -35,13 +52,6 @@ void main() async {
       await Permission.notification.request();
     }
   } catch (_) {}
-
-  // Load background-mode preference (service vs plain playback)
-  try {
-    await AudioManager.instance.loadBackgroundMode();
-  } catch (e) {
-    debugPrint('Background mode load failed: $e');
-  }
 
   // Load persistent data from SQLite (non-blocking on failure)
   try {

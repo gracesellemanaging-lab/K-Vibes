@@ -102,6 +102,13 @@ class LocalMusicManager extends ChangeNotifier {
       _songs = [];
       for (int i = 0; i < musicFiles.length; i++) {
         final file = musicFiles[i];
+        // Skip empty/tiny files: they can never produce sound and only
+        // cause stuck-at-00:00 entries in the list.
+        try {
+          if (await file.length() < 1024) continue;
+        } catch (_) {
+          continue;
+        }
         final name = file.path.split('/').last;
         final dotPos = name.lastIndexOf('.');
         final nameNoExt = dotPos == -1 ? name : name.substring(0, dotPos);

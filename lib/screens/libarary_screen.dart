@@ -173,8 +173,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 await am.setBackgroundMode(!am.backgroundMode);
                 if (mounted) setState(() {});
                 showAppSnack(am.backgroundMode
-                    ? 'Background ON — tukar gihapon inig lock/close'
-                    : 'Background OFF — plain playback (testing mode)');
+                    ? 'Background ON — i-RESTART ang app para mo-epekto'
+                    : 'Background OFF — i-RESTART ang app para mo-epekto');
               }
             },
             itemBuilder: (_) => [
