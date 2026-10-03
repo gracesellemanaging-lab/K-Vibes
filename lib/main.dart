@@ -12,30 +12,45 @@ import 'utils/playlist_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Media notification for background playback
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.example.music_app.audio',
-    androidNotificationChannelName: 'K-VIBES Playback',
-    androidNotificationOngoing: true,
-    androidShowNotificationBadge: true,
-    androidNotificationIcon: 'mipmap/ic_launcher',
-    androidStopForegroundOnPause: false,
-  );
+  // Media notification for background playback.
+  // Wrapped in try/catch so a background-service failure NEVER blocks app open.
+  try {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.example.music_app.audio',
+      androidNotificationChannelName: 'K-VIBES Playback',
+      androidNotificationOngoing: true,
+      androidShowNotificationBadge: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidStopForegroundOnPause: false,
+    );
+  } catch (e) {
+    debugPrint('JustAudioBackground.init failed, continuing without it: $e');
+  }
 
-  // Request notification permission on Android 13+
+  // Request notification permission on Android 13+ (non-blocking)
   try {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
   } catch (_) {}
 
-  // Load persistent data from SQLite
-  await LikedSongsManager.instance.load();
-  await PlaylistManager.instance.load();
+  // Load persistent data from SQLite (non-blocking on failure)
+  try {
+    await LikedSongsManager.instance.load();
+  } catch (e) {
+    debugPrint('LikedSongs load failed: $e');
+  }
+  try {
+    await PlaylistManager.instance.load();
+  } catch (e) {
+    debugPrint('Playlist load failed: $e');
+  }
 
   // Scan device music in background (shows cached songs instantly)
   // Fire-and-forget: don't block splash, but avoid awaiting here to keep fast startup
-  unawaited(LocalMusicManager.instance.init());
+  unawaited(LocalMusicManager.instance.init().catchError((e) {
+    debugPrint('LocalMusic init failed: $e');
+  }));
 
   runApp(const MusicApp());
 }

@@ -46,13 +46,23 @@ class AudioManager extends ChangeNotifier {
     try {
       await player.stop();
 
+      // Only use artUri for real URIs (file/content/http). Asset paths like
+      // 'assets/logo.png' crash the notification loader, so leave them null.
+      Uri? artUri;
+      final cover = song.coverImage;
+      if (cover.startsWith('file://') ||
+          cover.startsWith('content://') ||
+          cover.startsWith('http://') ||
+          cover.startsWith('https://')) {
+        artUri = Uri.tryParse(cover);
+      }
       final mediaItem = MediaItem(
         id: song.audioFile,
         album: song.album,
         title: song.title,
         artist: song.artist,
         duration: _parseDuration(song.duration),
-        artUri: song.coverImage.isNotEmpty ? Uri.tryParse(song.coverImage) : null,
+        artUri: artUri,
       );
 
       if (song.isLocal) {
