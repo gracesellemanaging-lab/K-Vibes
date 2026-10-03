@@ -8,9 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_colors.dart';
 
-/// Current app version — must match the latest GitHub release tag (v1.0.3).
+/// Current app version — must match the latest GitHub tag (v1.0.4).
 /// Bump this every time a new APK is published.
-const kAppVersion = '1.0.3';
+const kAppVersion = '1.0.4';
 
 const _kRepo = 'gracesellemanaging-lab/K-Vibes';
 const _kFallbackApk =
@@ -24,13 +24,17 @@ class AppUpdateInfo {
       {required this.version, required this.apkUrl, required this.notes});
 }
 
-/// Returns update info if GitHub has a NEWER release than [kAppVersion],
+/// Returns update info if GitHub has a NEWER tag than [kAppVersion],
 /// otherwise null (up to date or no internet — this is an offline app).
+///
+/// NOTE: we use the public *tags* endpoint, not /releases/latest, because
+/// this repo publishes via tags + raw APK link and has no Release objects.
+/// Tags come back newest-first, so the first vX.Y.Z match wins.
 Future<AppUpdateInfo?> checkForAppUpdate() async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 8);
   try {
     final req = await client
-        .getUrl(Uri.parse('https://api.github.com/$_kRepo/releases/latest'))
+        .getUrl(Uri.parse('https://api.github.com/repos/$_kRepo/tags'))
         .timeout(const Duration(seconds: 10));
     req.headers.set('Accept', 'application/vnd.github+json');
     req.headers.set('User-Agent', 'K-VIBES-app');
@@ -38,25 +42,18 @@ Future<AppUpdateInfo?> checkForAppUpdate() async {
     if (res.statusCode != 200) return null;
     final body =
         await res.transform(utf8.decoder).join().timeout(const Duration(seconds: 10));
-    final json = jsonDecode(body) as Map<String, dynamic>;
-    final tag = ((json['tag_name'] as String?) ?? '').trim();
-    if (tag.isEmpty || !_isNewer(tag, kAppVersion)) return null;
-
-    String apkUrl = _kFallbackApk;
-    final assets = json['assets'] as List<dynamic>? ?? [];
-    for (final a in assets) {
-      final m = a as Map<String, dynamic>;
-      final name = ((m['name'] as String?) ?? '').toLowerCase();
-      if (name.endsWith('.apk')) {
-        apkUrl = (m['browser_download_url'] as String?) ?? apkUrl;
+    final list = jsonDecode(body) as List<dynamic>;
+    String latest = '';
+    for (final t in list) {
+      final name =
+          (((t as Map<String, dynamic>)['name'] as String?) ?? '').trim();
+      if (RegExp(r'^v?\d+\.\d+\.\d+$').hasMatch(name)) {
+        latest = name;
         break;
       }
     }
-    return AppUpdateInfo(
-      version: tag,
-      apkUrl: apkUrl,
-      notes: ((json['body'] as String?) ?? '').trim(),
-    );
+    if (latest.isEmpty || !_isNewer(latest, kAppVersion)) return null;
+    return AppUpdateInfo(version: latest, apkUrl: _kFallbackApk, notes: '');
   } catch (_) {
     return null;
   } finally {
