@@ -4,6 +4,7 @@ import '../models/song.dart';
 import '../theme/app_colors.dart';
 import '../utils/liked_songs_manager.dart';
 import '../utils/playlist_manager.dart';
+import '../utils/app_updater.dart';
 import '../utils/local_music_manager.dart';
 import '../widgets/section_header.dart';
 import 'playlist_detail_screen.dart';
@@ -156,6 +157,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
           if (isScanning) const Padding(padding: EdgeInsets.all(14), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: kPink)))
           else IconButton(tooltip: 'Scan', onPressed: (){ HapticFeedback.lightImpact(); LocalMusicManager.instance.scanMusic(); }, icon: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.outlineSoft)), child: const Icon(Icons.refresh_rounded, color: AppColors.textPrimary, size: 18))),
           IconButton(onPressed: ()=> setState(()=> _grid = !_grid), icon: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: _grid? kPink: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: _grid? Colors.transparent: AppColors.outlineSoft)), child: Icon(_grid? Icons.view_list_rounded: Icons.grid_view_rounded, color: _grid? Colors.white: AppColors.textPrimary, size: 18))),
+          PopupMenuButton<String>(
+            tooltip: 'More',
+            icon: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.outlineSoft)), child: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary, size: 18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            onSelected: (v){ if (v == 'update') { HapticFeedback.selectionClick(); checkForUpdateManually(context); } },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'update',
+                child: Row(children: [
+                  Icon(Icons.system_update_rounded, size: 18, color: kPink),
+                  SizedBox(width: 10),
+                  Expanded(child: Text('Check for updates', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ]),
+              ),
+            ],
+          ),
           const SizedBox(width: 6),
         ],
       ),

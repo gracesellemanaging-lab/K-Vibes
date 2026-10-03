@@ -64,7 +64,12 @@ class PlaylistDetailScreen extends StatelessWidget {
                       child: Icon(icon, color: color, size: 52),
                     ),
                     const SizedBox(height: 14),
-                    Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(name,
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                    ),
                     const SizedBox(height: 4),
                     Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.outlineSoft)), child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.queue_music_rounded, size: 12, color: color),

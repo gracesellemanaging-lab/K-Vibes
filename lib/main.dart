@@ -4,6 +4,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'utils/helpers.dart';
 import 'screens/main_screen.dart';
 import 'utils/local_music_manager.dart';
 import 'utils/liked_songs_manager.dart';
@@ -20,7 +21,7 @@ void main() async {
       androidNotificationChannelName: 'K-VIBES Playback',
       androidNotificationOngoing: true,
       androidShowNotificationBadge: true,
-      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidNotificationIcon: 'drawable/ic_stat_music_note',
       androidStopForegroundOnPause: false,
     );
   } catch (e) {
@@ -63,9 +64,19 @@ class MusicApp extends StatelessWidget {
     return MaterialApp(
       title: 'K-VIBES',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.light,
+      // Clamp system font scaling so huge accessibility text never
+      // overflows the fixed-size cards on small phones (320-360dp).
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        final clamped =
+            mq.textScaler.clamp(minScaleFactor: 0.85, maxScaleFactor: 1.15);
+        return MediaQuery(
+            data: mq.copyWith(textScaler: clamped), child: child!);
+      },
       home: const SplashScreen(),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
+import '../utils/app_updater.dart';
 import '../widgets/mini_player.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
@@ -15,6 +16,21 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final _screens = const [HomeScreen(), SearchScreen(), LibraryScreen()];
+
+  @override
+  void initState() {
+    super.initState();
+    // Silent auto-check once per launch. Offline = no-op, no dialog.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _autoUpdateCheck());
+  }
+
+  Future<void> _autoUpdateCheck() async {
+    try {
+      final info = await checkForAppUpdate().timeout(const Duration(seconds: 12));
+      if (!mounted || info == null) return;
+      await showUpdateDialog(context, info);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {

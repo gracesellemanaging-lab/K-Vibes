@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/song.dart';
 import '../data/database_helper.dart';
+import 'helpers.dart';
 
 const List<Color> _kColors = [
   Color(0xFFFCE4EC), Color(0xFFE3F2FD), Color(0xFFE8F5E9),
@@ -61,6 +62,16 @@ class LocalMusicManager extends ChangeNotifier {
           _status    = 'Permission denied';
           _isLoading = false;
           notifyListeners();
+          // Surface it: tell the user WHY no songs appear + shortcut to Settings.
+          final permanent = await Permission.audio.isPermanentlyDenied ||
+              await Permission.storage.isPermanentlyDenied;
+          showAppSnack(
+            permanent
+                ? 'Music permission denied — i-on sa Settings para ma-scan'
+                : 'Music permission denied — i-allow para makita ang songs',
+            actionLabel: 'Settings',
+            onAction: () => openAppSettings(),
+          );
           return;
         }
       }

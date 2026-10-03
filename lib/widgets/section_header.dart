@@ -34,27 +34,36 @@ class SectionHeader extends StatelessWidget {
             ),
             const SizedBox(width: 10),
           ],
-          Text(title,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-          const Spacer(),
-          if (actionLabel != null)
-            GestureDetector(
-              onTap: onAction,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.outlineSoft),
+          Expanded(
+            child: Text(title,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(width: 8),
+            Flexible(
+              child: GestureDetector(
+                onTap: onAction,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.outlineSoft),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Flexible(
+                      child: Text(actionLabel!,
+                          style: const TextStyle(color: kPink, fontSize: 12, fontWeight: FontWeight.w700),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: kPink),
+                  ]),
                 ),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text(actionLabel!,
-                      style: const TextStyle(color: kPink, fontSize: 12, fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: kPink),
-                ]),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -80,7 +89,11 @@ class PillBadge extends StatelessWidget {
             Icon(icon, size: 11, color: color),
             const SizedBox(width: 5),
           ],
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
+          Flexible(
+            child: Text(label,
+                style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
         ]),
       );
 }

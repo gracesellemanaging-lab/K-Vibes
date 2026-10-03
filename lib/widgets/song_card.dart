@@ -132,11 +132,11 @@ class CompactSongCard extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Container(
-              height: width,
+              height: width * 0.88,
               width: width,
               color: song.cardColor,
               child: Image.asset(song.coverImage, fit: BoxFit.cover, errorBuilder: (_, __, ___) =>
-                  Center(child: Icon(Icons.music_note_rounded, color: AppColors.textTertiary.withValues(alpha: 0.7), size: 36))),
+                  Center(child: Icon(Icons.music_note_rounded, color: AppColors.textTertiary.withValues(alpha: 0.7), size: 32))),
             ),
           ),
           Padding(

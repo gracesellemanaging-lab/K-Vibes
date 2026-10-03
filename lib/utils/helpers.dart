@@ -50,3 +50,24 @@ String formatDuration(Duration d) {
   final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
   return '$m:$s';
 }
+
+/// Global messenger so background managers (audio, scanner) can show
+/// user-visible errors instead of silent debugPrint-only failures.
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+void showAppSnack(String message, {String? actionLabel, VoidCallback? onAction}) {
+  try {
+    final messenger = rootScaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(message, maxLines: 2, overflow: TextOverflow.ellipsis),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      duration: const Duration(seconds: 4),
+      action: actionLabel != null
+          ? SnackBarAction(label: actionLabel, onPressed: onAction ?? () {})
+          : null,
+    ));
+  } catch (_) {}
+}

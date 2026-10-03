@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/song.dart';
+import '../utils/helpers.dart';
 import '../utils/local_music_manager.dart';
 
 class AudioManager extends ChangeNotifier {
@@ -69,6 +70,7 @@ class AudioManager extends ChangeNotifier {
         final file = File(song.audioFile);
         if (!await file.exists()) {
           debugPrint('File not found: ${song.audioFile}');
+          showAppSnack('Wala nakit-an ang file: ${song.title}');
           return;
         }
         await player.setAudioSource(AudioSource.file(song.audioFile, tag: mediaItem));
@@ -79,6 +81,7 @@ class AudioManager extends ChangeNotifier {
       await player.play();
     } catch (e) {
       debugPrint('AudioManager play error: $e | file: ${song.audioFile}');
+      showAppSnack('Dili ma-play "${song.title}" — sulayi pag-usab');
     }
   }
 

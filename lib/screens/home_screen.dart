@@ -96,9 +96,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ClipRRect(borderRadius: BorderRadius.circular(9), child: Image.asset('assets/logo.png', fit: BoxFit.contain, errorBuilder: (_,__,___)=> const Icon(Icons.favorite_rounded, color: Colors.red, size: 19))),
                   ),
                   const SizedBox(width: 10),
-                  const Text('K-VIBES', style: TextStyle(color: AppColors.textPrimary, fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -0.8)),
+                  const Flexible(
+                    child: Text('K-VIBES',
+                        style: TextStyle(color: AppColors.textPrimary, fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -0.8),
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
                   const SizedBox(width: 8),
-                  PillBadge(label: '${all.length} songs', color: kPink, icon: Icons.queue_music_rounded),
+                  Flexible(child: PillBadge(label: '${all.length} songs', color: kPink, icon: Icons.queue_music_rounded)),
                 ]),
                 actions: [
                   IconButton(
@@ -152,9 +156,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(i==0?'FEATURED':i==1?'TRENDING':'LOCAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
                                 ])),
                                 const Spacer(),
-                                Text(data['title'] as String, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4)),
+                                Text(data['title'] as String,
+                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
-                                Text(data['sub'] as String, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12, fontWeight: FontWeight.w500)),
+                                Text(data['sub'] as String,
+                                    style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12, fontWeight: FontWeight.w500),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 10),
                                 GestureDetector(
                                   onTap: () {
@@ -238,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => PlaylistDetailScreen(name: _chipLabels[_chip], color: kPink, icon: _chipIcons[_chip], songs: filteredRecent.cast<Song>())));
                   }),
                   SizedBox(
-                    height: 208,
+                    height: 212,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),

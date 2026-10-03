@@ -108,11 +108,27 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
   void _showDevices() {
     showDialog(context: context, builder: (_) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Row(children: [Icon(Icons.devices_rounded, color: kPink), SizedBox(width: 8), Text('Devices', style: TextStyle(fontWeight: FontWeight.w800))]),
-      content: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.surfaceMuted, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.outlineSoft)), child: Row(children: [
-        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: kPinkLight, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.phone_android_rounded, color: kPink)),
-        const SizedBox(width: 12),
-        const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('This Device', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textPrimary)), Text('Currently playing • K-VIBES', style: TextStyle(color: kPink, fontSize: 12, fontWeight: FontWeight.w600))]),
+      titlePadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      title: const Row(children: [
+        Icon(Icons.devices_rounded, color: kPink, size: 20),
+        SizedBox(width: 8),
+        Expanded(child: Text('Devices',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+            maxLines: 1, overflow: TextOverflow.ellipsis)),
+      ]),
+      content: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.surfaceMuted, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.outlineSoft)), child: Row(children: [
+        Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: kPinkLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.phone_android_rounded, color: kPink, size: 20)),
+        const SizedBox(width: 10),
+        const Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('This Device',
+              style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textPrimary, fontSize: 14),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text('Currently playing • K-VIBES',
+              style: TextStyle(color: kPink, fontSize: 12, fontWeight: FontWeight.w600),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+        ])),
       ])),
       actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: const Text('Close', style: TextStyle(color: kPink)))],
     ));
