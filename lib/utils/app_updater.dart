@@ -4,13 +4,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_colors.dart';
 
-/// Current app version — must match the latest GitHub tag (v1.0.5).
+/// Current app version — must match the latest GitHub tag (v1.0.6).
 /// Bump this every time a new APK is published.
-const kAppVersion = '1.0.5';
+const kAppVersion = '1.0.6';
 
 const _kRepo = 'gracesellemanaging-lab/K-Vibes';
 const _kFallbackApk =
@@ -140,8 +142,128 @@ Future<void> showUpdateDialog(BuildContext context, AppUpdateInfo info) {
   );
 }
 
-/// Opens the APK link in the browser. Falls back to copying the link.
+/// Downloads the APK *inside the app* with a progress dialog, then hands
+/// the file to the system installer. Falls back to the browser on failure.
 Future<void> downloadUpdate(BuildContext context, String apkUrl) async {
+  final progress = ValueNotifier<double>(0);
+  bool cancelled = false;
+  bool dialogOpen = false;
+
+  // Start download in background.
+  final future = _downloadApk(apkUrl, (p) {
+    if (!cancelled) progress.value = p;
+  });
+  // Auto-close the progress dialog when done.
+  future.then((_) {
+    if (dialogOpen && context.mounted) {
+      dialogOpen = false;
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  });
+
+  if (!context.mounted) return;
+  dialogOpen = true;
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Downloading update…',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          maxLines: 1, overflow: TextOverflow.ellipsis),
+      content: ValueListenableBuilder<double>(
+        valueListenable: progress,
+        builder: (_, v, child) => Column(mainAxisSize: MainAxisSize.min, children: [
+          LinearProgressIndicator(
+            value: v <= 0 ? null : v.clamp(0.0, 1.0),
+            minHeight: 6,
+            backgroundColor: AppColors.outlineSoft,
+            valueColor: const AlwaysStoppedAnimation(kPink),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          const SizedBox(height: 10),
+          Text(v <= 0 ? 'Starting…' : '${(v * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13, fontWeight: FontWeight.w700)),
+        ]),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            cancelled = true;
+            dialogOpen = false;
+            Navigator.pop(ctx);
+          },
+          child: const Text('Cancel',
+              style: TextStyle(color: AppColors.textSecondary)),
+        ),
+      ],
+    ),
+  );
+  dialogOpen = false;
+
+  String? path;
+  try {
+    path = await future;
+  } catch (_) {
+    path = null;
+  }
+  if (cancelled) return;
+  if (!context.mounted) return;
+
+  if (path == null) {
+    // Download failed → fall back to browser.
+    await _openInBrowser(context, apkUrl);
+    return;
+  }
+
+  // Hand the APK to the system installer (asks "Install unknown apps" once).
+  try {
+    final res = await OpenFilex.open(path);
+    if (res.type != ResultType.done && context.mounted) {
+      await _openInBrowser(context, apkUrl);
+    }
+  } catch (_) {
+    if (context.mounted) await _openInBrowser(context, apkUrl);
+  }
+}
+
+/// Raw file download with progress (0.0–1.0). Returns the saved path or null.
+Future<String?> _downloadApk(
+    String url, void Function(double) onProgress) async {
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
+  try {
+    final req = await client
+        .getUrl(Uri.parse(url))
+        .timeout(const Duration(seconds: 15));
+    final res = await req.close().timeout(const Duration(seconds: 15));
+    if (res.statusCode != 200) return null;
+    final total = res.contentLength; // -1 when unknown
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/K-vibes-update.apk');
+    if (await file.exists()) await file.delete();
+    final sink = file.openWrite();
+    try {
+      int received = 0;
+      await for (final chunk in res) {
+        received += chunk.length;
+        sink.add(chunk);
+        if (total > 0) onProgress(received / total);
+      }
+    } finally {
+      await sink.close();
+    }
+    return file.path;
+  } catch (_) {
+    return null;
+  } finally {
+    client.close(force: true);
+  }
+}
+
+/// Browser fallback when in-app download/install isn't possible.
+Future<void> _openInBrowser(BuildContext context, String apkUrl) async {
   final uri = Uri.tryParse(apkUrl);
   if (uri != null) {
     try {
@@ -151,7 +273,6 @@ Future<void> downloadUpdate(BuildContext context, String apkUrl) async {
       }
     } catch (_) {}
   }
-  // Fallback: copy link so the user can paste it in Chrome.
   try {
     await Clipboard.setData(ClipboardData(text: apkUrl));
   } catch (_) {}

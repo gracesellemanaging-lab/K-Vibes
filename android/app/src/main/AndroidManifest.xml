@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Only used by the in-app update checker (GitHub releases). Music stays offline. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Lets the in-app updater install the downloaded APK. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <application
         android:label="K-VIBES"
