@@ -292,7 +292,19 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                   ]);
                 },
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 6),
+              // Temporary diagnostics: proves whether the player engine is
+              // really progressing (remove once playback is stable).
+              StreamBuilder<PlayerState>(
+                stream: _audio.player.playerStateStream,
+                builder: (_, snap) => Text(
+                  'State: ${snap.data?.processingState.name ?? '-'} • BG: ${_audio.backgroundMode ? 'ON' : 'OFF'}',
+                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 10),
+                  textAlign: TextAlign.center,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 12),
               // controls - responsive
               LayoutBuilder(builder: (context, c) {
                 final narrow = c.maxWidth < 360;

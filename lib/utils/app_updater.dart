@@ -8,9 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_colors.dart';
 
-/// Current app version — must match the latest GitHub release tag (v1.0.2).
+/// Current app version — must match the latest GitHub release tag (v1.0.3).
 /// Bump this every time a new APK is published.
-const kAppVersion = '1.0.2';
+const kAppVersion = '1.0.3';
 
 const _kRepo = 'gracesellemanaging-lab/K-Vibes';
 const _kFallbackApk =

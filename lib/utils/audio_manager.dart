@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/song.dart';
 import '../utils/helpers.dart';
 import '../utils/local_music_manager.dart';
@@ -20,6 +21,31 @@ class AudioManager extends ChangeNotifier {
   bool       isShuffle    = false;
   bool       isRepeat     = false;
   List<Song> _queue       = [];
+
+  /// Background mode ON = playback via AudioService (notification +
+  /// lockscreen + keeps playing when screen is off). OFF = plain local
+  /// playback with no service involved (guaranteed foreground sound).
+  bool backgroundMode = true;
+
+  Future<void> loadBackgroundMode() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final f = File('${dir.path}/bg_mode.txt');
+      if (await f.exists()) {
+        backgroundMode = (await f.readAsString()).trim() != '0';
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setBackgroundMode(bool value) async {
+    backgroundMode = value;
+    notifyListeners();
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      await File('${dir.path}/bg_mode.txt').writeAsString(value ? '1' : '0');
+    } catch (_) {}
+  }
 
   List<Song> get _allSongs => LocalMusicManager.instance.songs.toList();
 
@@ -47,25 +73,6 @@ class AudioManager extends ChangeNotifier {
     try {
       await player.stop();
 
-      // Only use artUri for real URIs (file/content/http). Asset paths like
-      // 'assets/logo.png' crash the notification loader, so leave them null.
-      Uri? artUri;
-      final cover = song.coverImage;
-      if (cover.startsWith('file://') ||
-          cover.startsWith('content://') ||
-          cover.startsWith('http://') ||
-          cover.startsWith('https://')) {
-        artUri = Uri.tryParse(cover);
-      }
-      final mediaItem = MediaItem(
-        id: song.audioFile,
-        album: song.album,
-        title: song.title,
-        artist: song.artist,
-        duration: _parseDuration(song.duration),
-        artUri: artUri,
-      );
-
       if (song.isLocal) {
         final file = File(song.audioFile);
         if (!await file.exists()) {
@@ -73,9 +80,40 @@ class AudioManager extends ChangeNotifier {
           showAppSnack('Wala nakit-an ang file: ${song.title}');
           return;
         }
-        await player.setAudioSource(AudioSource.file(song.audioFile, tag: mediaItem));
+      }
+
+      if (backgroundMode) {
+        // Service path: notification + lockscreen + screen-off playback.
+        // Only use artUri for real URIs (file/content/http). Asset paths like
+        // 'assets/logo.png' crash the notification loader, so leave them null.
+        Uri? artUri;
+        final cover = song.coverImage;
+        if (cover.startsWith('file://') ||
+            cover.startsWith('content://') ||
+            cover.startsWith('http://') ||
+            cover.startsWith('https://')) {
+          artUri = Uri.tryParse(cover);
+        }
+        final mediaItem = MediaItem(
+          id: song.audioFile,
+          album: song.album,
+          title: song.title,
+          artist: song.artist,
+          duration: _parseDuration(song.duration),
+          artUri: artUri,
+        );
+        await player.setAudioSource(
+          song.isLocal
+              ? AudioSource.file(song.audioFile, tag: mediaItem)
+              : AudioSource.asset(song.audioFile, tag: mediaItem),
+        );
       } else {
-        await player.setAudioSource(AudioSource.asset(song.audioFile, tag: mediaItem));
+        // Plain local playback: no background service involved.
+        await player.setAudioSource(
+          song.isLocal
+              ? AudioSource.file(song.audioFile)
+              : AudioSource.asset(song.audioFile),
+        );
       }
 
       await player.play();

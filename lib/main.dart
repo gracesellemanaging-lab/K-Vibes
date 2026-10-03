@@ -4,6 +4,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'utils/audio_manager.dart';
 import 'utils/helpers.dart';
 import 'screens/main_screen.dart';
 import 'utils/local_music_manager.dart';
@@ -34,6 +35,13 @@ void main() async {
       await Permission.notification.request();
     }
   } catch (_) {}
+
+  // Load background-mode preference (service vs plain playback)
+  try {
+    await AudioManager.instance.loadBackgroundMode();
+  } catch (e) {
+    debugPrint('Background mode load failed: $e');
+  }
 
   // Load persistent data from SQLite (non-blocking on failure)
   try {

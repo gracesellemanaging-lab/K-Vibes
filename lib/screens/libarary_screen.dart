@@ -5,6 +5,8 @@ import '../theme/app_colors.dart';
 import '../utils/liked_songs_manager.dart';
 import '../utils/playlist_manager.dart';
 import '../utils/app_updater.dart';
+import '../utils/audio_manager.dart';
+import '../utils/helpers.dart';
 import '../utils/local_music_manager.dart';
 import '../widgets/section_header.dart';
 import 'playlist_detail_screen.dart';
@@ -161,14 +163,43 @@ class _LibraryScreenState extends State<LibraryScreen> {
             tooltip: 'More',
             icon: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.outlineSoft)), child: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary, size: 18)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            onSelected: (v){ if (v == 'update') { HapticFeedback.selectionClick(); checkForUpdateManually(context); } },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
+            onSelected: (v) async {
+              if (v == 'update') {
+                HapticFeedback.selectionClick();
+                checkForUpdateManually(context);
+              } else if (v == 'bgmode') {
+                HapticFeedback.selectionClick();
+                final am = AudioManager.instance;
+                await am.setBackgroundMode(!am.backgroundMode);
+                if (mounted) setState(() {});
+                showAppSnack(am.backgroundMode
+                    ? 'Background ON — tukar gihapon inig lock/close'
+                    : 'Background OFF — plain playback (testing mode)');
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
                 value: 'update',
                 child: Row(children: [
                   Icon(Icons.system_update_rounded, size: 18, color: kPink),
                   SizedBox(width: 10),
                   Expanded(child: Text('Check for updates', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ]),
+              ),
+              PopupMenuItem(
+                value: 'bgmode',
+                child: Row(children: [
+                  Icon(
+                    AudioManager.instance.backgroundMode
+                        ? Icons.cloud_done_rounded
+                        : Icons.smartphone_rounded,
+                    size: 18, color: kPink),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(
+                    AudioManager.instance.backgroundMode
+                        ? 'Background: ON'
+                        : 'Background: OFF',
+                    maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ]),
               ),
             ],
