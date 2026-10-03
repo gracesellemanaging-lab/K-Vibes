@@ -178,6 +178,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
               }
             },
             itemBuilder: (_) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Row(children: [
+                  const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textTertiary),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('K-VIBES v$kAppVersion',
+                      style: const TextStyle(color: AppColors.textTertiary, fontSize: 13, fontWeight: FontWeight.w600),
+                      maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ]),
+              ),
               const PopupMenuItem(
                 value: 'update',
                 child: Row(children: [
